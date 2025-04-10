@@ -20,20 +20,21 @@ This is a simple tool designed to test Slime Legion algorithm.
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/username/slime-board-editor.git
+   git clone https://github.com/tranlam076/test_slime_legion_algorithm.git
 
 2. Navigate to the project directory:
    ```bash
-   cd slime-board-editor
+   cd test_slime_legion_algorithm
 3. Ensure you are running on a Windows operating system.
 
 ## Usage
 
 1. Run the application:
-   slime_algorithm_killer076.exe
+    ```bash
+    slime_algorithm_killer076.exe
 
 2. Modify the board:
-- Edit the `new_board	txt` file directly to customize the slime board.
+- Edit the `new_board.txt` file directly to customize the slime board.
 - Alternatively, use the interface:
   - **Left-click**: Increase the slime level.
   - **Right-click**: Decrease the slime level.
