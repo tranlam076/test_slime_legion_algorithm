@@ -251,7 +251,7 @@
 
         <div class="controls">
             <div class="theme-selector">
-                <label for="theme-select">Slime Theme:</label>
+                <label for="theme-select">Select character:</label>
                 <select id="theme-select">
                     <option value="default">Default (numbers)</option>
                 </select>
@@ -306,15 +306,15 @@
                 // const json = await response.json();
                 const json = {
                     "data": 
-                    [{"dragon":{
-                        "icon":"https://tranlam076.github.io/test_slime_legion_algorithm/slimes/dragon/icon.png",
-                        "1":"https://tranlam076.github.io/test_slime_legion_algorithm/slimes/dragon/1.png",
-                        "2":"https://tranlam076.github.io/test_slime_legion_algorithm/slimes/dragon/2.png",
-                        "3":"https://tranlam076.github.io/test_slime_legion_algorithm/slimes/dragon/3.png",
-                        "4":"https://tranlam076.github.io/test_slime_legion_algorithm/slimes/dragon/4.png",
-                        "5":"https://tranlam076.github.io/test_slime_legion_algorithm/slimes/dragon/5.png",
-                        "6":"https://tranlam076.github.io/test_slime_legion_algorithm/slimes/dragon/6.png",
-                        "7":"https://tranlam076.github.io/test_slime_legion_algorithm/slimes/dragon/7.png"
+                    [{"Dracula":{
+                        "icon":"https://tranlam076.github.io/slime_simulator/slimes/dracula/icon.png",
+                        "1":"https://tranlam076.github.io/slime_simulator/slimes/dracula/1.png",
+                        "2":"https://tranlam076.github.io/slime_simulator/slimes/dracula/2.png",
+                        "3":"https://tranlam076.github.io/slime_simulator/slimes/dracula/3.png",
+                        "4":"https://tranlam076.github.io/slime_simulator/slimes/dracula/4.png",
+                        "5":"https://tranlam076.github.io/slime_simulator/slimes/dracula/5.png",
+                        "6":"https://tranlam076.github.io/slime_simulator/slimes/dracula/6.png",
+                        "7":"https://tranlam076.github.io/slime_simulator/slimes/dracula/7.png"
                     }}]
                 };
                 const themesData = json.data;
@@ -404,7 +404,7 @@
                         const img = document.createElement('img');
                         img.src = slimeImages[value];
                         img.alt = value;
-                        img.onerror = () => { img.src = 'https://via.placeholder.com/80/cccccc/000000?text=?' };
+                        img.onerror = () => { img.src = '' };
                         td.appendChild(img);
                     } else {
                         td.textContent = slimeImages[value] || value;
@@ -722,17 +722,51 @@
         const PRESET_BOARDS = {
             "boards": [
                 {
-                    "name": "7 max",
+                    "name": "3 max no cross",
                     "data": [
-                        { "id": 1, "board": [[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]] },
-                        { "id": 2, "board": [[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,1,0,0],[0,0,0,1,0,0],[0,0,0,1,0,0],[0,0,0,1,0,0]] }
+                        { "id": 1, "board": [[2,2,1,0,0,0],[2,2,1,2,2,0],[1,1,1,1,1,2],[2,2,1,0,2,0],[2,0,2,0,0,0],[0,0,0,0,0,0]] },
+                        { "id": 2, "board": [[0,0,0,1,2,2],[0,2,2,1,2,2],[2,1,1,1,1,1],[0,2,0,1,2,2],[0,0,0,2,0,2],[0,0,0,0,0,0]] }
                     ]
                 },
                 {
-                    "name": "8 max",
+                    "name": "7 max no cross",
                     "data": [
-                        { "id": 1, "board": [[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,2,0,0],[0,0,0,2,0,0],[0,0,2,2,0,0],[0,0,0,0,0,0]] },
-                        { "id": 2, "board": [[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,1,0,0],[0,0,0,3,3,3],[0,0,0,1,0,0],[0,0,0,1,0,0]] }
+                        { "id": 1, "board": [[2,2,1,0,0,0],[2,2,1,2,2,3],[1,1,1,1,1,2],[2,2,1,0,2,0],[2,0,2,0,2,0],[0,0,0,0,0,0]] },
+                        { "id": 2, "board": [[2,2,1,0,0,0],[2,2,1,2,2,0],[1,1,1,1,1,2],[2,2,1,0,2,3],[2,0,2,0,2,0],[0,0,0,0,0,0]] }
+                    ]
+                },
+                {
+                    "name": "8 max no cross",
+                    "data": [
+                        { "id": 1, "board": [[2,2,1,0,0,0],[2,2,1,2,2,3],[1,1,1,1,1,2],[2,2,1,0,2,3],[2,0,2,0,2,0],[0,0,0,0,0,0]] },
+                        { "id": 2, "board": [[2,2,1,0,0,0],[2,2,1,2,2,3],[1,1,1,1,1,2],[2,2,1,0,2,0],[2,0,2,0,2,0],[0,0,0,0,3,0]] }
+                    ]
+                },
+                {
+                    "name": "16 max",
+                    "data": [
+                        { "id": 1, "board": [[0,0,4,3,4,0],[0,0,3,2,3,3],[0,4,3,2,3,3],[0,2,2,2,2,2],[0,3,3,2,3,3],[0,3,0,2,3,3]] },
+                        { "id": 2, "board": [[3,3,2,3,4,4],[3,3,2,3,3,4],[2,2,2,2,2,3],[3,3,2,3,3,0],[3,3,2,0,0,0],[0,0,3,0,0,0]] }
+                    ]
+                },
+                {
+                    "name": "18 max",
+                    "data": [
+                        { "id": 1, "board": [[3,3,2,3,0,0],[2,2,1,2,0,0],[2,2,1,2,2,3],[1,1,1,1,1,2],[2,0,1,2,2,0],[2,0,1,0,2,3]] },
+                        { "id": 2, "board": [[3,3,2,4,3,4],[3,3,2,3,3,4],[2,2,2,2,2,3],[3,3,2,3,3,4],[3,3,2,3,0,4],[0,0,0,0,0,0]] }
+                    ]
+                },
+                {
+                    "name": "22 max",
+                    "data": [
+                        { "id": 1, "board": [[0,0,2,3,3,4],[2,2,1,3,2,3],[2,2,1,2,2,3],[1,1,1,1,1,2],[2,2,1,2,2,3],[2,2,1,0,0,3]] },
+                        { "id": 2, "board": [[0,0,3,4,4,5],[3,3,2,3,4,5],[3,3,2,3,3,4],[2,2,2,2,2,3],[3,3,2,3,3,0],[3,3,2,0,0,0]] }
+                    ]
+                },
+                {
+                    "name": "26 max",
+                    "data": [
+                        { "id": 1, "board": [[0,4,2,3,3,4],[4,3,2,3,3,4],[2,2,2,2,2,3],[4,3,2,3,3,4],[3,3,2,3,0,4],[4,4,3,4,3,5]] }
                     ]
                 }
             ]
