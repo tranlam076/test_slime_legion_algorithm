@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Slime Merge Simulator by Killer076</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One:wght@400&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f5f7fa;
+            --card: #ffffff;
+            --primary: #5d5fef;
+            --success: #00d4aa;
+            --danger: #ff6b6b;
+            --text: #2d3748;
+            --border: #e2e8f0;
+            --shadow: 0 10px 30px rgba(0,0,0,0.08);
+            --radius: 20px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #121826;
+                --card: #1e293b;
+                --text: #e2e8f0;
+                --border: #334155;
+            }
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 15px 10px;
+            color: var(--text);
+        }
+
+        #game-container {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            max-width: 500px;
+            margin: 0 auto;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Prevent unwanted text selection in the game area */
+        #game-container,
+        #game-container * {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Allow selection in preset section (for copying names) */
+        .preset-section,
+        .preset-section * {
+            user-select: auto !important;
+        }
+
+        h1 {
+            font-family: 'Fredoka One', cursive;
+            text-align: center;
+            font-size: 2rem;
+            background: linear-gradient(90deg, #5d5fef, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            padding: 20px 0 10px;
+            margin-bottom: 10px;
+        }
+
+        .controls { padding: 0 20px 20px; }
+
+        /* Theme selector */
+        .theme-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            background: rgba(93, 95, 239, 0.1);
+            padding: 16px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .theme-selector label {
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+        #theme-select {
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: none;
+            background: white;
+            font-size: 1rem;
+            min-width: 160px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .theme-preview {
+            width: 60px;
+            height: 60px;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 3px solid #5d5fef;
+            box-shadow: 0 4px 15px rgba(93,95,239,0.3);
+        }
+        .theme-preview img, .theme-preview span { width: 100%; height: 100%; object-fit: contain; }
+
+        /* Grid */
+        #grid {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 6px;
+            margin: 20px auto;
+            table-layout: fixed;
+        }
+        #grid td {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            height: 68px;
+            background: #f8fafc;
+            border-radius: 14px;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        @media (max-width: 480px) {
+            #grid td { height: 56px; font-size: 24px; }
+        }
+
+        #grid td img {
+            width: 90% !important;
+            height: 90% !important;
+            max-width: 68px;
+            max-height: 68px;
+            object-fit: contain;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.25));
+            border-radius: 12px;
+        }
+
+        #grid td.red { color: var(--danger); }
+        #grid td.black { color: #1a202c; }
+
+        /* Merge highlight effect */
+        #grid td.highlight {
+            background: #fff4c4 !important;
+            transform: scale(1.02);
+            box-shadow: 0 0 0 2px #ffd60a;
+            z-index: 5;
+        }
+
+        /* Control buttons */
+        #buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 10px;
+        }
+        @media (max-width: 480px) {
+            #buttons { grid-template-columns: repeat(2, 1fr); }
+            #buttons button:nth-child(5) { grid-column: span 2; }
+        }
+        button {
+            padding: 16px 10px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 16px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        button:active { transform: translateY(2px); }
+
+        #back    { background: linear-gradient(135deg, #ff9a9e, #fad0c4); }
+        #run     { background: linear-gradient(135deg, #a8edea, #5d5fef); }
+        #runall  { background: linear-gradient(135deg, #ff9d6c, #bb4e75); }
+        #changerows { background: linear-gradient(135deg, #74ebd5, #ACB6E5); }
+        #reload  { background: linear-gradient(135deg, #667eea, #764ba2); }
+
+        button:disabled {
+            opacity: 0.5;
+            transform: none !important;
+            cursor: not-allowed;
+        }
+
+        /* Preset boards section */
+        .preset-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: var(--radius);
+            backdrop-filter: blur(10px);
+        }
+        .preset-section h2 {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+            background: linear-gradient(90deg, #5d5fef, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        #board-group-select {
+            width: 100%;
+            padding: 14px;
+            border-radius: 14px;
+            border: none;
+            background: white;
+            font-size: 1.05rem;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        #board-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 14px;
+            max-height: 360px;
+            overflow-y: auto;
+            padding: 10px;
+            border-radius: 14px;
+            background: rgba(0,0,0,0.03);
+        }
+        .loading { text-align: center; margin-top: 10px; font-style: italic; opacity: 0.7; }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>Slime Simulator from Killer076</h1>
+
+        <div class="controls">
+            <div class="theme-selector">
+                <label for="theme-select">Slime Theme:</label>
+                <select id="theme-select">
+                    <option value="default">Default (numbers)</option>
+                </select>
+                <div class="theme-preview" id="theme-preview">
+                    <span style="font-size:36px;">123</span>
+                </div>
+                <span class="loading" id="loading-text">Loading...</span>
+            </div>
+
+            <table id="grid"></table>
+
+            <div id="buttons">
+                <button id="back">Back</button>
+                <button id="run">Run 1 Step</button>
+                <button id="runall">Run All</button>
+                <button id="changerows">Rows: 6</button>
+                <button id="reload">Reload</button>
+            </div>
+        </div>
+
+        <div class="preset-section">
+            <h2>Preset Boards</h2>
+            <select id="board-group-select">
+                <option value="">-- Select board group --</option>
+            </select>
+            <div id="board-list">
+                <div style="grid-column: 1/-1; text-align:center; color:#888; padding:20px;">
+                    Select a group to view boards...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme handling
+        const SLIME_THEMES = {}; // Will be filled from API
+        let currentTheme = "default";
+        let slimeImages = {
+            1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7",
+            "-1": "-1"
+        };
+
+        // Load themes from API
+        async function loadThemesFromAPI() {
+            const loadingText = document.getElementById('loading-text');
+            const select = document.getElementById('theme-select');
+
+            try {
+                // const response = await fetch('http://131.211.133.12:1234/load_slime');
+                // if (!response.ok) throw new Error('API không phản hồi');
+
+                // const json = await response.json();
+                const json = {
+                    "data": 
+                    [{"dragon":{
+                        "icon":"https://tranlam076.github.io/test_slime_legion_algorithm/slimes/dragon/icon.png",
+                        "1":"https://tranlam076.github.io/test_slime_legion_algorithm/slimes/dragon/1.png",
+                        "2":"https://tranlam076.github.io/test_slime_legion_algorithm/slimes/dragon/2.png",
+                        "3":"https://tranlam076.github.io/test_slime_legion_algorithm/slimes/dragon/3.png",
+                        "4":"https://tranlam076.github.io/test_slime_legion_algorithm/slimes/dragon/4.png",
+                        "5":"https://tranlam076.github.io/test_slime_legion_algorithm/slimes/dragon/5.png",
+                        "6":"https://tranlam076.github.io/test_slime_legion_algorithm/slimes/dragon/6.png",
+                        "7":"https://tranlam076.github.io/test_slime_legion_algorithm/slimes/dragon/7.png"
+                    }}]
+                };
+                const themesData = json.data;
+
+                themesData.forEach(item => {
+                    for (const [key, value] of Object.entries(item)) {
+                        const name = key.charAt(0).toUpperCase() + key.slice(1);
+                        SLIME_THEMES[key] = {
+                            name: name,
+                            icon: value.icon,
+                            images: {}
+                        };
+                        for (let i = 1; i <= 7; i++) {
+                            if (value[i + ""]) {
+                                SLIME_THEMES[key].images[i] = value[i + ""];
+                            }
+                        }
+
+                        const option = document.createElement('option');
+                        option.value = key;
+                        option.textContent = name;
+                        select.appendChild(option);
+                    }
+                });
+
+                setTimeout(() => loadingText.style.display = 'none', 500);
+
+            } catch (err) {
+                console.error("Error loading themes:", err);
+                loadingText.textContent = "Failed to load themes (using numbers)";
+                loadingText.style.color = "red";
+                setTimeout(() => loadingText.style.display = 'none', 3000);
+            }
+        }
+
+        // Change theme
+        function loadSlimeImages(themeKey) {
+            if (themeKey === "default") {
+                slimeImages = {1:"1",2:"2",3:"3",4:"4",5:"5",6:"6",7:"7","-1":"-1"};
+                document.getElementById('theme-preview').innerHTML = '<span style="font-size:30px;">123</span>';
+            } else if (SLIME_THEMES[themeKey]) {
+                const theme = SLIME_THEMES[themeKey];
+                slimeImages = {};
+                for (let i = 1; i <= 7; i++) {
+                    slimeImages[i] = theme.images[i] || "https://via.placeholder.com/80?text=" + i;
+                }
+                slimeImages["-1"] = "-1";
+                document.getElementById('theme-preview').innerHTML = `<img src="${theme.icon}" alt="${themeKey}">`;
+            }
+            drawBoard();
+        }
+
+        document.getElementById('theme-select').addEventListener('change', (e) => {
+            currentTheme = e.target.value;
+            loadSlimeImages(currentTheme);
+        });
+
+        // ==================== GAME LOGIC (unchanged) ====================
+        let NUM_ROWS = 6;
+        let NUM_COLS = 6;
+        let board = [];
+        let all_board = [];
+        const merge_rules = {1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7};
+        let is_updating = false;
+
+        function initBoard() {
+            board = Array.from({length: NUM_ROWS}, () => Array(NUM_COLS).fill(0));
+            all_board = [deepCopy(board)];
+            drawBoard();
+            updateRowsButton();
+        }
+
+        function deepCopy(arr) { return JSON.parse(JSON.stringify(arr)); }
+
+        function drawBoard(highlightPositions = []) {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            for (let row = 0; row < NUM_ROWS; row++) {
+                const tr = document.createElement('tr');
+                for (let col = 0; col < NUM_COLS; col++) {
+                    const td = document.createElement('td');
+                    const value = board[row][col];
+
+                    if (value === 0) {
+                        td.textContent = '';
+                    } else if (slimeImages[value] && slimeImages[value].startsWith('http')) {
+                        const img = document.createElement('img');
+                        img.src = slimeImages[value];
+                        img.alt = value;
+                        img.onerror = () => { img.src = 'https://via.placeholder.com/80/cccccc/000000?text=?' };
+                        td.appendChild(img);
+                    } else {
+                        td.textContent = slimeImages[value] || value;
+                        td.classList.add(value === -1 ? 'red' : 'black');
+                    }
+
+                    if (highlightPositions.some(pos => pos[0] === row && pos[1] === col)) {
+                        td.classList.add('highlight');
+                        setTimeout(() => td.classList.remove('highlight'), 600);
+                    }
+
+                    td.dataset.row = row;
+                    td.dataset.col = col;
+                    tr.appendChild(td);
+                }
+                grid.appendChild(tr);
+            }
+        }
+
+        function updateRowsButton() {
+            document.getElementById('changerows').textContent = `Rows: ${NUM_ROWS}`;
+        }
+
+        // Game classes and functions (100% unchanged logic)
+        class Slime {
+            constructor() { this.lv = null; this.x = null; this.y = null; this.id = null; this.is_overlap = false; }
+        }
+
+        function init_slime(input_board) {
+            const collect_slime = {};
+            for (let y = 0; y < input_board.length; y++) {
+                for (let x = 0; x < input_board[y].length; x++) {
+                    const lv = input_board[y][x];
+                    if (lv === 0 || lv === -1) continue;
+                    const slime = new Slime();
+                    slime.x = x; slime.y = y; slime.lv = lv; slime.id = `${x}_${y}`;
+                    collect_slime[slime.id] = slime;
+                }
+            }
+            return collect_slime;
+        }
+
+        function show_slime(collected_slime) {
+            const export_board = Array.from({length: NUM_ROWS}, () => Array(NUM_COLS).fill(0));
+            for (const slime of Object.values(collected_slime)) {
+                if (slime.x !== null && slime.y !== null) {
+                    export_board[slime.y][slime.x] = slime.lv;
+                }
+            }
+            return export_board;
+        }
+
+        function calculate_score(collected_slime, slime_level) {
+            const scored_slime = {};
+            const match_x = {};
+            for (const slime of Object.values(collected_slime)) {
+                if (slime.x === null || slime.lv !== slime_level) continue;
+                if (!match_x[slime.x]) match_x[slime.x] = [];
+                match_x[slime.x].push(slime.id);
+            }
+            const match_y = {};
+            for (const slime of Object.values(collected_slime)) {
+                if (slime.x === null || slime.lv !== slime_level) continue;
+                if (!match_y[slime.y]) match_y[slime.y] = [];
+                match_y[slime.y].push(slime.id);
+            }
+
+            // Horizontal matches
+            for (const x in match_x) {
+                if (match_x[x].length < 3) continue;
+                const ids = match_x[x].sort((a, b) => collected_slime[a].y - collected_slime[b].y);
+                let score = 1; let matched_id = [ids[0]];
+                for (let i = 1; i < ids.length; i++) {
+                    if (collected_slime[ids[i]].y - collected_slime[matched_id[matched_id.length - 1]].y > 1) {
+                        if (score >= 3) {
+                            if (!scored_slime[score]) scored_slime[score] = [];
+                            scored_slime[score].push([score, 1, parseInt(x), matched_id, slime_level]);
+                        }
+                        score = 1; matched_id = [ids[i]];
+                    } else {
+                        score += 1; matched_id.push(ids[i]);
+                    }
+                }
+                if (score >= 3) {
+                    if (!scored_slime[score]) scored_slime[score] = [];
+                    scored_slime[score].push([score, 1, parseInt(x), matched_id, slime_level]);
+                }
+            }
+
+            // Vertical matches
+            for (const y in match_y) {
+                if (match_y[y].length < 3) continue;
+                const ids = match_y[y].sort((a, b) => collected_slime[a].x - collected_slime[b].x);
+                let score = 1; let matched_id = [ids[0]];
+                for (let i = 1; i < ids.length; i++) {
+                    if (collected_slime[ids[i]].x - collected_slime[matched_id[matched_id.length - 1]].x > 1) {
+                        if (score >= 3) {
+                            if (!scored_slime[score]) scored_slime[score] = [];
+                            scored_slime[score].push([score, 0, parseInt(y), matched_id, slime_level]);
+                        }
+                        score = 1; matched_id = [ids[i]];
+                    } else {
+                        score += 1; matched_id.push(ids[i]);
+                    }
+                }
+                if (score >= 3) {
+                    if (!scored_slime[score]) scored_slime[score] = [];
+                    scored_slime[score].push([score, 0, parseInt(y), matched_id, slime_level]);
+                }
+            }
+            return scored_slime;
+        }
+
+        function get_merge_able_slime(collected_slime) {
+            const detected = {};
+            for (const lv in merge_rules) {
+                const detect_by_lv = calculate_score(collected_slime, parseInt(lv));
+                for (const score in detect_by_lv) {
+                    if (!detected[score]) detected[score] = [];
+                    detected[score].push(...detect_by_lv[score]);
+                }
+            }
+            return detected;
+        }
+
+        function arrange_slime(detected) {
+            const scores = Object.keys(detected).sort((a, b) => b - a);
+            let arranged = [];
+            for (const score of scores) {
+                arranged = arranged.concat(detected[score].sort());
+            }
+            return arranged;
+        }
+
+        function merge_slime(collected_slime, arranged) {
+            for (const ar of arranged) {
+                const slime_ids = ar[3];
+                const level = ar[4];
+                const first_id = slime_ids[0];
+                const last_id = slime_ids[slime_ids.length - 1];
+                let overlap_count = 0;
+                for (let i = 1; i < slime_ids.length - 1; i++) {
+                    if (collected_slime[slime_ids[i]].is_overlap) overlap_count++;
+                }
+                for (let i = 1; i < slime_ids.length - 1; i++) {
+                    const sid = slime_ids[i];
+                    if (!collected_slime[sid].is_overlap) {
+                        collected_slime[sid].lv = merge_rules[level];
+                        collected_slime[sid].is_overlap = true;
+                    }
+                }
+                if (overlap_count === 1) {
+                    if (collected_slime[first_id].is_overlap) {
+                        collected_slime[last_id].lv = merge_rules[level];
+                        collected_slime[last_id].is_overlap = true;
+                    } else {
+                        collected_slime[first_id].lv = merge_rules[level];
+                        collected_slime[first_id].is_overlap = true;
+                        if (!collected_slime[last_id].is_overlap) {
+                            collected_slime[last_id].lv = -1;
+                        }
+                    }
+                } else if (overlap_count > 1) {
+                    collected_slime[first_id].lv = merge_rules[level];
+                    collected_slime[first_id].is_overlap = true;
+                    collected_slime[last_id].lv = merge_rules[level];
+                    collected_slime[last_id].is_overlap = true;
+                } else {
+                    if (!collected_slime[first_id].is_overlap) collected_slime[first_id].lv = -1;
+                    if (!collected_slime[last_id].is_overlap) collected_slime[last_id].lv = -1;
+                }
+            }
+            return collected_slime;
+        }
+
+        function move_slime(collected_slime) {
+            const keys = Object.keys(collected_slime);
+            for (const k of keys) {
+                if (collected_slime[k].lv === -1) {
+                    const x = collected_slime[k].x;
+                    for (const j in collected_slime) {
+                        if (collected_slime[j].x === x && collected_slime[j].y > collected_slime[k].y) {
+                            collected_slime[j].y -= 1;
+                        }
+                    }
+                    collected_slime[k].x = null;
+                    collected_slime[k].y = null;
+                }
+            }
+            return collected_slime;
+        }
+
+        function update_board(new_board, highlight = false) {
+            if (new_board.length !== NUM_ROWS || new_board.some(row => row.length !== NUM_COLS)) return;
+            const changed_positions = [];
+            for (let r = 0; r < NUM_ROWS; r++) {
+                for (let c = 0; c < NUM_COLS; c++) {
+                    if (board[r][c] !== new_board[r][c]) {
+                        changed_positions.push([r, c]);
+                    }
+                }
+            }
+            board = deepCopy(new_board);
+            drawBoard(highlight ? changed_positions : []);
+        }
+
+        async function run_step() {
+            if (is_updating) return;
+            is_updating = true;
+            toggleButtons(false);
+            all_board.push(deepCopy(board));
+            const all_slime = init_slime(board);
+            const merge_able = get_merge_able_slime(all_slime);
+            const arranged_slime = arrange_slime(merge_able);
+            let updated_slime = merge_slime(all_slime, arranged_slime);
+            let pre_board = show_slime(updated_slime);
+            update_board(pre_board, true);
+            await delay(200);
+            updated_slime = move_slime(updated_slime);
+            const show_board = show_slime(updated_slime);
+            update_board(show_board, true);
+            all_board.push(deepCopy(board));
+            await delay(100);
+            is_updating = false;
+            toggleButtons(true);
+        }
+
+        async function run_all() {
+            if (is_updating) return;
+            is_updating = true;
+            toggleButtons(false);
+            let current_board = null;
+            for (let step = 0; step < 15; step++) {
+                if (JSON.stringify(current_board) === JSON.stringify(board)) break;
+                current_board = deepCopy(board);
+                all_board.push(deepCopy(board));
+                const all_slime = init_slime(board);
+                const merge_able = get_merge_able_slime(all_slime);
+                const arranged_slime = arrange_slime(merge_able);
+                let updated_slime = merge_slime(all_slime, arranged_slime);
+                let pre_board = show_slime(updated_slime);
+                update_board(pre_board, true);
+                await delay(300);
+                updated_slime = move_slime(updated_slime);
+                const show_board = show_slime(updated_slime);
+                update_board(show_board, true);
+                all_board.push(deepCopy(board));
+                await delay(300);
+            }
+            is_updating = false;
+            toggleButtons(true);
+        }
+
+        function change_rows() {
+            if (is_updating) return;
+            NUM_ROWS = {6: 7, 7: 8, 8: 6}[NUM_ROWS];
+            initBoard();
+        }
+
+        function back() {
+            if (is_updating || all_board.length <= 1) return;
+            let new_board = all_board.pop();
+            if (all_board.length > 1 && JSON.stringify(new_board) === JSON.stringify(board)) {
+                new_board = all_board.pop();
+            }
+            update_board(new_board, true);
+        }
+
+        function reloadBoard() {
+            if (is_updating) return;
+            initBoard();
+        }
+
+        function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+        function toggleButtons(enabled) {
+            document.querySelectorAll('button').forEach(btn => {
+                btn.disabled = !enabled;
+            });
+        }
+
+        // Click to place / cycle slimes
+        document.getElementById('grid').addEventListener('click', (e) => {
+            if (is_updating || !e.target.closest) return;
+            const td = e.target.closest('td');
+            if (!td || !td.dataset.row) return;
+            const row = parseInt(td.dataset.row);
+            const col = parseInt(td.dataset.col);
+            board[row][col] = (board[row][col] + 1) % 8 || 0; // 0 → 1
+            drawBoard([[row, col]]);
+        });
+
+        // Right-click to decrease level
+        document.getElementById('grid').addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            const td = e.target.closest('td');
+            if (!td || !td.dataset.row || is_updating) return;
+            const row = parseInt(td.dataset.row);
+            const col = parseInt(td.dataset.col);
+            if (board[row][col] > 0) {
+                board[row][col] = board[row][col] - 1 || 0;
+            } else {
+                board[row][col] = 7;
+            }
+            drawBoard([[row, col]]);
+        });
+
+        document.getElementById('back').onclick = back;
+        document.getElementById('run').onclick = run_step;
+        document.getElementById('runall').onclick = run_all;
+        document.getElementById('changerows').onclick = change_rows;
+        document.getElementById('reload').onclick = reloadBoard;
+
+        // Preset boards data
+        const PRESET_BOARDS = {
+            "boards": [
+                {
+                    "name": "7 max",
+                    "data": [
+                        { "id": 1, "board": [[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]] },
+                        { "id": 2, "board": [[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,1,0,0],[0,0,0,1,0,0],[0,0,0,1,0,0],[0,0,0,1,0,0]] }
+                    ]
+                },
+                {
+                    "name": "8 max",
+                    "data": [
+                        { "id": 1, "board": [[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,2,0,0],[0,0,0,2,0,0],[0,0,2,2,0,0],[0,0,0,0,0,0]] },
+                        { "id": 2, "board": [[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,1,0,0],[0,0,0,3,3,3],[0,0,0,1,0,0],[0,0,0,1,0,0]] }
+                    ]
+                }
+            ]
+        };
+
+        // Preset board UI
+        const boardGroupSelect = document.getElementById('board-group-select');
+        const boardListContainer = document.getElementById('board-list');
+
+        // Load danh sách nhóm
+        PRESET_BOARDS.boards.forEach(group => {
+            const opt = document.createElement('option');
+            opt.value = group.name;
+            opt.textContent = group.name;
+            boardGroupSelect.appendChild(opt);
+        });
+
+        boardGroupSelect.addEventListener('change', () => {
+            const selectedGroupName = boardGroupSelect.value;
+            boardListContainer.innerHTML = '';
+
+            if (!selectedGroupName) {
+                boardListContainer.innerHTML = '<div style="color: #888; font-style: italic;">Select board...</div>';
+                return;
+            }
+
+            const group = PRESET_BOARDS.boards.find(g => g.name === selectedGroupName);
+            if (!group) return;
+
+            group.data.forEach(item => {
+                const card = document.createElement('div');
+                card.style.cssText = `
+                    cursor: pointer; border: 2px solid #333; border-radius: 10px; overflow: hidden;
+                    width: 180px; background: white; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                    transition: all 0.2s; text-align: center; font-weight: bold;
+                `;
+                card.innerHTML = `
+                    <div style="background: #333; color: white; padding: 8px; font-size: 14px;">ID: ${item.id}</div>
+                    <div style="padding: 8px; font-size: 12px; color: #000; background: #f5f5f5;">${group.name}</div>
+                    <div style="padding: 10px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; background: #fff;">
+                        ${item.board.flat().map(val => 
+                            val === 0 
+                                ? '<div style="width:20px;height:20px;background:#eee;border:1px solid #ddd;"></div>'
+                                : `<div style="width:20px;height:20px;background:#28a745;color:white;font-size:10px;display:flex;align-items:center;justify-content:center;border-radius:4px;">${val}</div>`
+                        ).join('')}
+                    </div>
+                `;
+
+                card.addEventListener('mouseenter', () => card.style.transform = 'translateY(-4px) scale(1.03)');
+                card.addEventListener('mouseleave', () => card.style.transform = '');
+                card.addEventListener('click', () => {
+                    // Resize board nếu cần (6x6, 7x7, 8x8)
+                    const rows = item.board.length;
+                    if (rows !== NUM_ROWS) {
+                        NUM_ROWS = rows;
+                        NUM_COLS = 6;
+                        updateRowsButton();
+                        const grid = document.getElementById('grid');
+                        grid.innerHTML = '';
+                    }
+                    board = deepCopy(item.board);
+                    if (board.length < NUM_ROWS) {
+                        while (board.length < NUM_ROWS) {
+                            board.unshift(Array(NUM_COLS).fill(0));
+                        }
+                    }
+                    drawBoard();
+                    // alert(`Đã tải board ID: ${item.id} - ${group.name}`);
+                });
+
+                boardListContainer.appendChild(card);
+            });
+        });
+
+        const originalDrawBoard = drawBoard;
+        drawBoard = function(highlightPositions = []) {
+            originalDrawBoard(highlightPositions);
+            // Xóa class cũ
+            document.querySelectorAll('#grid td.highlight').forEach(el => el.classList.remove('highlight'));
+            // Thêm class mới cho hiệu ứng đẹp hơn
+            highlightPositions.forEach(pos => {
+                const td = document.querySelector(`#grid td[data-row="${pos[0]}"][data-col="${pos[1]}"]`);
+                if (td) {
+                    td.classList.add('highlight');
+                    setTimeout(() => td.classList.remove('highlight'), 600);
+                }
+            });
+        };
+
+        // Initialize
+        initBoard();
+        loadThemesFromAPI();
+        loadSlimeImages("default");
+    </script>
+</body>
+</html>
