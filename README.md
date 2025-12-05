@@ -20,11 +20,11 @@ This is a simple tool designed to test Slime Legion algorithm.
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/tranlam076/test_slime_legion_algorithm.git
+   git clone https://github.com/tranlam076/slime_simulator.git
 
 2. Navigate to the project directory:
    ```bash
-   cd test_slime_legion_algorithm
+   cd slime_simulator
 3. Ensure you are running on a Windows operating system.
 
 ## Usage

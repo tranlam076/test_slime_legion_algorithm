@@ -163,7 +163,7 @@
         /* Merge highlight effect */
         #grid td.highlight {
             background: #fff4c4 !important;
-            transform: scale(1.02);
+            transform: scale(0.9);
             box-shadow: 0 0 0 2px #ffd60a;
             z-index: 5;
         }
@@ -413,7 +413,7 @@
 
                     if (highlightPositions.some(pos => pos[0] === row && pos[1] === col)) {
                         td.classList.add('highlight');
-                        setTimeout(() => td.classList.remove('highlight'), 600);
+                        setTimeout(() => td.classList.remove('highlight'), 300);
                     }
 
                     td.dataset.row = row;
@@ -622,12 +622,12 @@
             let updated_slime = merge_slime(all_slime, arranged_slime);
             let pre_board = show_slime(updated_slime);
             update_board(pre_board, true);
-            await delay(200);
+            await delay(300);
             updated_slime = move_slime(updated_slime);
             const show_board = show_slime(updated_slime);
-            update_board(show_board, true);
+            update_board(show_board, false);
             all_board.push(deepCopy(board));
-            await delay(100);
+            await delay(300);
             is_updating = false;
             toggleButtons(true);
         }
@@ -650,7 +650,7 @@
                 await delay(300);
                 updated_slime = move_slime(updated_slime);
                 const show_board = show_slime(updated_slime);
-                update_board(show_board, true);
+                update_board(show_board, false);
                 all_board.push(deepCopy(board));
                 await delay(300);
             }
@@ -851,7 +851,7 @@
                 const td = document.querySelector(`#grid td[data-row="${pos[0]}"][data-col="${pos[1]}"]`);
                 if (td) {
                     td.classList.add('highlight');
-                    setTimeout(() => td.classList.remove('highlight'), 600);
+                    setTimeout(() => td.classList.remove('highlight'), 300);
                 }
             });
         };
